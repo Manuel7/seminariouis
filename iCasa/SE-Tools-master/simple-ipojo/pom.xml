@@ -10,14 +10,9 @@
 
 	<name>Simple iPOJO Component</name>
 
-	<dependencies>
+	<dependencies>		
 		<dependency>
-			<groupId>fr.liglab.adele.icasa</groupId>
-			<artifactId>context.api</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
+			<groupId>org.apache.felix</groupId> <!--Importar para usar anotaciones java que sustituyan al archivo xml-->
 			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
 			<version>1.8.2</version>
 		</dependency>
