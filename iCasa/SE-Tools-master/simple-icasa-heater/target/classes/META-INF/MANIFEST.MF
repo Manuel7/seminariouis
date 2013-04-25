@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1366905244418
+Bnd-LastModified: 1366908564428
 Build-Jdk: 1.7.0_21
 Built-By: Imac
 Bundle-ManifestVersion: 2
@@ -8,7 +8,8 @@ Bundle-SymbolicName: co.edu.uis.sistemas.simple-icasa-heater
 Bundle-Version: 0.0.1.SNAPSHOT
 Created-By: Apache Maven Bundle Plugin
 Export-Package: co.edu.uis.sistemas.simple.icasa;uses:="fr.liglab.adele.
- icasa.device.temperature";version="0.0.1.SNAPSHOT"
-Import-Package: fr.liglab.adele.icasa.device.temperature;version="[1.0,2
- )"
+ icasa.device.temperature,fr.liglab.adele.icasa.device";version="0.0.1.S
+ NAPSHOT"
+Import-Package: fr.liglab.adele.icasa.device;version="[1.0,2)",fr.liglab
+ .adele.icasa.device.temperature;version="[1.0,2)"
 Tool: Bnd-1.50.0
