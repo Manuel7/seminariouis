@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1366989115994
+Bnd-LastModified: 1366990995760
 Build-Jdk: 1.7.0_21
 Built-By: Imac
 Bundle-ManifestVersion: 2

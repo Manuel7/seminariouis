@@ -184,10 +184,17 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 								{
 									locThermo = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
 									locHeater = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
-									locCooler = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+									locCooler = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);	
+									String idT = device.getSerialNumber();
+									String idH = device.getSerialNumber();
+									String idC = device.getSerialNumber();
+									System.out.println("Modificado " + idT + " propiedad ubicacion valor " + locThermo);
+									System.out.println("Modificado " + idH + " propiedad ubicacion valor " + locHeater);
+									System.out.println("Modificado " + idC + " propiedad ubicacion valor " + locCooler);
 									if (locThermo.equals(locHeater) && locThermo.equals(locCooler))
-									{
+									{										
 										Thermometer T = thermometers.get(t);
+										
 										Heater H = heaters.get(h);
 										Cooler C = coolers.get(c);
 										
