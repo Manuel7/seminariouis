@@ -45,6 +45,7 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 	private Thread modifyHeatersThread;
 	private Thread modifyThermometerThread;
 	private Thread modifyCoolerThread;
+	private Thread modifyTemperature;
 	
 	protected void bindZone(Zone zone)
 	{
@@ -110,11 +111,10 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 	
 	@Validate
 	public void start() {
-		modifyHeatersThread = new Thread(new ModifyRunnable());
+		modifyTemperature = new Thread(new ModifyRunnable());
+		modifyTemperature.start();	
 		modifyHeatersThread.start();	
-		modifyThermometerThread = new Thread(new ModifyRunnable());
 		modifyThermometerThread.start();
-		modifyCoolerThread = new Thread(new ModifyRunnable());
 		modifyCoolerThread.start();
 	}
 	
@@ -166,8 +166,6 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 			String locHeater; 
 			String locCooler; 
 			
-			int t=0,h=0,c=0;
-			
 			while (running) {
 				try
 				{
@@ -184,41 +182,46 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 								{
 									locThermo = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
 									locHeater = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
-									locCooler = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);	
-									String idT = device.getSerialNumber();
-									String idH = device.getSerialNumber();
-									String idC = device.getSerialNumber();
-									System.out.println("Modificado " + idT + " propiedad ubicacion valor " + locThermo);
-									System.out.println("Modificado " + idH + " propiedad ubicacion valor " + locHeater);
-									System.out.println("Modificado " + idC + " propiedad ubicacion valor " + locCooler);
-									if (locThermo.equals(locHeater) && locThermo.equals(locCooler))
-									{										
-										Thermometer T = thermometers.get(t);
-										
-										Heater H = heaters.get(h);
-										Cooler C = coolers.get(c);
-										
-										if(T.getTemperature() >= 300)
+									locCooler = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+									if (locThermo.equals(locHeater))
+									{
+										if(thermometer.getTemperature() >= 300)
 										{
-											C.setPowerLevel(1);
-											H.setPowerLevel(0);
+											cooler.setPowerLevel(1.0);
+											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+											heater.setPowerLevel(0.0);
+											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
 										}
-										else if (T.getTemperature() <= 290)
+										else if (thermometer.getTemperature() <= 290)
 										{
-											C.setPowerLevel(0);
-											H.setPowerLevel(1);
+											cooler.setPowerLevel(0.0);
+											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+											heater.setPowerLevel(1.0);
+											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
 										}
 									}
-									c++;
+									if (locThermo.equals(locCooler))
+									{
+										if(thermometer.getTemperature() >= 300)
+										{
+											cooler.setPowerLevel(1.0);
+											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+											heater.setPowerLevel(0.0);
+											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
+										}
+										else if (thermometer.getTemperature() <= 290)
+										{
+											cooler.setPowerLevel(0.0);
+											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+											heater.setPowerLevel(1.0);
+											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
+										}
+									}
 								}
-								c=0;
-								h++;
-							}
-							h=0;
-							t++;							
+							}						
 						}
 					}
-					Thread.sleep(1000);	
+					Thread.sleep(500);	
 				} catch (InterruptedException e) {
 					running = false;
 				}
