@@ -17,11 +17,16 @@ import fr.liglab.adele.icasa.device.GenericDevice;
 import fr.liglab.adele.icasa.device.temperature.Cooler;
 import fr.liglab.adele.icasa.device.temperature.Heater;
 import fr.liglab.adele.icasa.device.temperature.Thermometer;
+import fr.liglab.adele.icasa.location.LocatedDevice;
+import fr.liglab.adele.icasa.location.Position;
+import fr.liglab.adele.icasa.location.ZoneListener;
+import fr.liglab.adele.icasa.location.Zone;
+import fr.liglab.adele.icasa.location.ZonePropListener;
 
 
 @Component(name="SimpleIcasaComponent")
 @Instantiate
-public class SimpleIcasaComponent implements DeviceListener {
+public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 	
 	@Requires(id="heater")
 	private Heater[] heater;
@@ -32,11 +37,26 @@ public class SimpleIcasaComponent implements DeviceListener {
 	@Requires(id="cooler")
 	private Cooler[] cooler;
 	
+	@Requires(id="zones")
+	private Zone[] zones;
+	
 	private List<GenericDevice> listDevice;
 	
 	private Thread modifyHeatersThread;
 	private Thread modifyThermometerThread;
 	private Thread modifyCoolerThread;
+	
+	protected void bindZone(Zone zone)
+	{
+		System.out.println("A new zone has been added to the platform " + zone.getVariableNames());
+		zone.addListener(this);
+	}
+	
+	protected void unBindZone(Zone zone)
+	{
+		System.out.println("Zona removida " + zone.getVariableNames());
+		zone.removeListener(this);
+	}
 	
 	@Bind(id="heater")
 	protected void bindHeater(Heater heater) {
@@ -65,13 +85,13 @@ public class SimpleIcasaComponent implements DeviceListener {
 	
 	@Bind(id="cooler")
 	protected void bindCooler(Cooler cooler) {
-		System.out.println("A new thermometer has been added to the platform " + cooler.getSerialNumber());
+		System.out.println("A new cooler has been added to the platform " + cooler.getSerialNumber());
 		cooler.addListener(this);
 	}
 	
 	@Unbind(id="cooler")
 	protected void unBindCooler(Cooler cooler) {
-		System.out.println("Thermometer removido " + cooler.getSerialNumber());
+		System.out.println("Cooler removido " + cooler.getSerialNumber());
 		cooler.removeListener(this);
 	}
 
@@ -198,6 +218,57 @@ public class SimpleIcasaComponent implements DeviceListener {
 			}
 			
 		}
+		
+	}
+
+
+	public void zoneVariableAdded(Zone arg0, String arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void zoneVariableModified(Zone arg0, String arg1, Object arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void zoneVariableRemoved(Zone arg0, String arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void deviceAttached(Zone arg0, LocatedDevice arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void deviceDetached(Zone arg0, LocatedDevice arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void zoneAdded(Zone arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void zoneMoved(Zone arg0, Position arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void zoneParentModified(Zone arg0, Zone arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void zoneRemoved(Zone arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void zoneResized(Zone arg0) {
+		// TODO Auto-generated method stub
 		
 	}
 	
