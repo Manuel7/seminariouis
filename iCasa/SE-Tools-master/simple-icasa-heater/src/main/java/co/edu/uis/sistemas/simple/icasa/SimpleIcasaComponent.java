@@ -28,6 +28,8 @@ public class SimpleIcasaComponent implements DeviceListener {
 	@Requires(id="thermometer")
 	private Thermometer[] thermometer; 
 	
+	private List<GenericDevice> listDevice;
+	
 	private Thread modifyHeatersThread;
 	private Thread modifyThermometerThread;
 	
@@ -95,6 +97,12 @@ public class SimpleIcasaComponent implements DeviceListener {
 		String id = device.getSerialNumber();
 		String location = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
 		System.out.println("Modificado " + id + " propiedad " + property + " valor " + location);
+		
+		listDevice.add(device);
+	}
+
+	public void temperature()
+	{
 		
 	}
 
