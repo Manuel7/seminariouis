@@ -14,6 +14,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 
 import fr.liglab.adele.icasa.device.DeviceListener;
 import fr.liglab.adele.icasa.device.GenericDevice;
+import fr.liglab.adele.icasa.device.temperature.Cooler;
 import fr.liglab.adele.icasa.device.temperature.Heater;
 import fr.liglab.adele.icasa.device.temperature.Thermometer;
 
@@ -28,10 +29,14 @@ public class SimpleIcasaComponent implements DeviceListener {
 	@Requires(id="thermometer")
 	private Thermometer[] thermometer; 
 	
+	@Requires(id="cooler")
+	private Cooler[] cooler;
+	
 	private List<GenericDevice> listDevice;
 	
 	private Thread modifyHeatersThread;
 	private Thread modifyThermometerThread;
+	private Thread modifyCoolerThread;
 	
 	@Bind(id="heater")
 	protected void bindHeater(Heater heater) {
@@ -57,6 +62,18 @@ public class SimpleIcasaComponent implements DeviceListener {
 		System.out.println("Thermometer removido " + thermometer.getSerialNumber());
 		thermometer.removeListener(this);
 	}
+	
+	@Bind(id="cooler")
+	protected void bindCooler(Cooler cooler) {
+		System.out.println("A new thermometer has been added to the platform " + cooler.getSerialNumber());
+		cooler.addListener(this);
+	}
+	
+	@Unbind(id="cooler")
+	protected void unBindCooler(Cooler cooler) {
+		System.out.println("Thermometer removido " + cooler.getSerialNumber());
+		cooler.removeListener(this);
+	}
 
 	protected List<Heater> getHeater() {
 		return Collections.unmodifiableList(Arrays.asList(heater));
@@ -65,14 +82,20 @@ public class SimpleIcasaComponent implements DeviceListener {
 	protected List<Thermometer> getThermometer() {
 		return Collections.unmodifiableList(Arrays.asList(thermometer));
 	}
+	
+	protected List<Cooler> getCooler() {
+		return Collections.unmodifiableList(Arrays.asList(cooler));
+	}
 
 	
 	@Validate
 	public void start() {
-		modifyHeatersThread = new Thread();
+		modifyHeatersThread = new Thread(new ModifyRunnable());
 		modifyHeatersThread.start();	
-		modifyThermometerThread = new Thread();
+		modifyThermometerThread = new Thread(new ModifyRunnable());
 		modifyThermometerThread.start();
+		modifyCoolerThread = new Thread(new ModifyRunnable());
+		modifyCoolerThread.start();
 	}
 	
 	@Invalidate
@@ -81,6 +104,8 @@ public class SimpleIcasaComponent implements DeviceListener {
 		modifyHeatersThread.join();	
 		modifyThermometerThread.interrupt();
 		modifyThermometerThread.join();
+		modifyCoolerThread.interrupt();
+		modifyCoolerThread.join();
 	}
 
 	public void deviceAdded(GenericDevice arg0) {
@@ -101,11 +126,6 @@ public class SimpleIcasaComponent implements DeviceListener {
 		listDevice.add(device);
 	}
 
-	public void temperature()
-	{
-		
-	}
-
 	public void devicePropertyRemoved(GenericDevice arg0, String arg1) {
 		// TODO Auto-generated method stub
 		
@@ -122,15 +142,56 @@ public class SimpleIcasaComponent implements DeviceListener {
 		public void run() {
 						
 			boolean running = true;
+			String locThermo;
+			String locHeater; 
+			String locCooler; 
 			
-			boolean onOff = false;
+			int t=0,h=0,c=0;
+			
 			while (running) {
-				try {
-					
-					for (BinaryLight binaryLight : lights) {
-						binaryLight.setPowerStatus(onOff);
+				try
+				{
+					List<Cooler> coolers = getCooler();
+					List<Heater> heaters = getHeater();
+					List<Thermometer> thermometers = getThermometer();
+					for (GenericDevice device : listDevice)
+					{
+						for (Thermometer thermometer :  thermometers)
+						{
+							for (Heater heater : heaters)
+							{
+								for (Cooler cooler : coolers)
+								{
+									locThermo = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+									locHeater = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+									locCooler = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+									if (locThermo.equals(locHeater) && locThermo.equals(locCooler))
+									{
+										Thermometer T = thermometers.get(t);
+										Heater H = heaters.get(h);
+										Cooler C = coolers.get(c);
+										
+										if(T.getTemperature() >= 300)
+										{
+											C.setPowerLevel(1);
+											H.setPowerLevel(0);
+										}
+										else if (T.getTemperature() <= 290)
+										{
+											C.setPowerLevel(0);
+											H.setPowerLevel(1);
+										}
+									}
+									c++;
+								}
+								c=0;
+								h++;
+							}
+							h=0;
+							t++;							
+						}
 					}
-					Thread.sleep(1000);					
+					Thread.sleep(1000);	
 				} catch (InterruptedException e) {
 					running = false;
 				}
