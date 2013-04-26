@@ -117,7 +117,7 @@ public class SimpleIcasaComponent implements DeviceListener {
 	}
 
 	
-	/*class ModifyLigthsRunnable implements Runnable {
+	class ModifyRunnable implements Runnable {
 
 		public void run() {
 						
@@ -125,9 +125,8 @@ public class SimpleIcasaComponent implements DeviceListener {
 			
 			boolean onOff = false;
 			while (running) {
-				onOff = !onOff;
 				try {
-					List<BinaryLight> lights = getLights();
+					
 					for (BinaryLight binaryLight : lights) {
 						binaryLight.setPowerStatus(onOff);
 					}
@@ -139,6 +138,6 @@ public class SimpleIcasaComponent implements DeviceListener {
 			
 		}
 		
-	}*/
+	}
 	
 }
