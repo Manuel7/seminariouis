@@ -17,16 +17,11 @@ import fr.liglab.adele.icasa.device.GenericDevice;
 import fr.liglab.adele.icasa.device.temperature.Cooler;
 import fr.liglab.adele.icasa.device.temperature.Heater;
 import fr.liglab.adele.icasa.device.temperature.Thermometer;
-import fr.liglab.adele.icasa.location.LocatedDevice;
-import fr.liglab.adele.icasa.location.Position;
-import fr.liglab.adele.icasa.location.ZoneListener;
-import fr.liglab.adele.icasa.location.Zone;
-import fr.liglab.adele.icasa.location.ZonePropListener;
 
 
 @Component(name="SimpleIcasaComponent")
 @Instantiate
-public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
+public class SimpleIcasaComponent implements DeviceListener {
 	
 	@Requires(id="heater")
 	private Heater[] heater;
@@ -37,27 +32,9 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 	@Requires(id="cooler")
 	private Cooler[] cooler;
 	
-	@Requires(id="zones")
-	private Zone[] zones;
-	
 	private List<GenericDevice> listDevice;
 	
-	private Thread modifyHeatersThread;
-	private Thread modifyThermometerThread;
-	private Thread modifyCoolerThread;
 	private Thread modifyTemperature;
-	
-	protected void bindZone(Zone zone)
-	{
-		System.out.println("A new zone has been added to the platform " + zone.getVariableNames());
-		zone.addListener(this);
-	}
-	
-	protected void unBindZone(Zone zone)
-	{
-		System.out.println("Zona removida " + zone.getVariableNames());
-		zone.removeListener(this);
-	}
 	
 	@Bind(id="heater")
 	protected void bindHeater(Heater heater) {
@@ -113,19 +90,12 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 	public void start() {
 		modifyTemperature = new Thread(new ModifyRunnable());
 		modifyTemperature.start();	
-		modifyHeatersThread.start();	
-		modifyThermometerThread.start();
-		modifyCoolerThread.start();
 	}
 	
 	@Invalidate
 	public void stop() throws InterruptedException {
-		modifyHeatersThread.interrupt();
-		modifyHeatersThread.join();	
-		modifyThermometerThread.interrupt();
-		modifyThermometerThread.join();
-		modifyCoolerThread.interrupt();
-		modifyCoolerThread.join();
+		modifyTemperature.interrupt();
+		modifyTemperature.join();	;
 	}
 
 	public void deviceAdded(GenericDevice arg0) {
@@ -161,125 +131,64 @@ public class SimpleIcasaComponent implements DeviceListener, ZoneListener {
 
 		public void run() {
 						
-			boolean running = true;
-			String locThermo;
-			String locHeater; 
-			String locCooler; 
-			
+			boolean running = true;			
 			while (running) {
 				try
 				{
 					List<Cooler> coolers = getCooler();
 					List<Heater> heaters = getHeater();
 					List<Thermometer> thermometers = getThermometer();
-					for (GenericDevice device : listDevice)
+					for (Thermometer thermometer :  thermometers)
 					{
-						for (Thermometer thermometer :  thermometers)
+						for (Heater heater : heaters)
 						{
-							for (Heater heater : heaters)
+							for (Cooler cooler : coolers)
 							{
-								for (Cooler cooler : coolers)
+								String locThermo = (String) thermometer.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+								String locHeater = (String) heater.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+								String locCooler = (String) cooler.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
+								if (locThermo.equals(locHeater))
 								{
-									locThermo = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
-									locHeater = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
-									locCooler = (String) device.getPropertyValue(GenericDevice.LOCATION_PROPERTY_NAME);
-									if (locThermo.equals(locHeater))
+									if(thermometer.getTemperature() >= 300)
 									{
-										if(thermometer.getTemperature() >= 300)
-										{
-											cooler.setPowerLevel(1.0);
-											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
-											heater.setPowerLevel(0.0);
-											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
-										}
-										else if (thermometer.getTemperature() <= 290)
-										{
-											cooler.setPowerLevel(0.0);
-											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
-											heater.setPowerLevel(1.0);
-											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
-										}
+										cooler.setPowerLevel(1.0);
+										System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+										heater.setPowerLevel(0.0);
+										System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
 									}
-									if (locThermo.equals(locCooler))
+									else if (thermometer.getTemperature() <= 290)
 									{
-										if(thermometer.getTemperature() >= 300)
-										{
-											cooler.setPowerLevel(1.0);
-											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
-											heater.setPowerLevel(0.0);
-											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
-										}
-										else if (thermometer.getTemperature() <= 290)
-										{
-											cooler.setPowerLevel(0.0);
-											System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
-											heater.setPowerLevel(1.0);
-											System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
-										}
+										cooler.setPowerLevel(0.0);
+										System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+										heater.setPowerLevel(1.0);
+										System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
 									}
 								}
-							}						
-						}
+								if (locThermo.equals(locCooler))
+								{
+									if(thermometer.getTemperature() >= 300)
+									{
+										cooler.setPowerLevel(1.0);
+										System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+										heater.setPowerLevel(0.0);
+										System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
+									}
+									else if (thermometer.getTemperature() <= 290)
+									{
+										cooler.setPowerLevel(0.0);
+										System.out.println("La temperatura de " + cooler.getSerialNumber() + " es " + cooler.getPowerLevel());
+										heater.setPowerLevel(1.0);
+										System.out.println("La temperatura de " + heater.getSerialNumber() + " es " + heater.getPowerLevel());
+									}
+								}
+							}
+						}						
 					}
-					Thread.sleep(500);	
+					Thread.sleep(500);		
 				} catch (InterruptedException e) {
-					running = false;
+						running = false;
 				}
-			}
-			
-		}
-		
-	}
-
-
-	public void zoneVariableAdded(Zone arg0, String arg1) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void zoneVariableModified(Zone arg0, String arg1, Object arg2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void zoneVariableRemoved(Zone arg0, String arg1) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void deviceAttached(Zone arg0, LocatedDevice arg1) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void deviceDetached(Zone arg0, LocatedDevice arg1) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void zoneAdded(Zone arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void zoneMoved(Zone arg0, Position arg1) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void zoneParentModified(Zone arg0, Zone arg1) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void zoneRemoved(Zone arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void zoneResized(Zone arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-	
+			}			
+		}		
+	}	
 }
